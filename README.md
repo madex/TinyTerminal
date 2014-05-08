@@ -1,7 +1,9 @@
 TinyTerminal
 ============
 
-TinyTerminal. Tiny (only 15KB) Serial Terminal Software for Windows, with lots of Features. (From http://elm-chan.org/fsw_e.html + extra Features and smaller)
+Tiny (only 15KB) Serial Terminal Software for Windows, with lots of Features. 
+This is a fork from http://elm-chan.org/fsw_e.html
+I added some extra features like ALT+G and ALT-Z. And reduced the binary size.
 
 
 OPTIONS
@@ -13,6 +15,7 @@ This file is searched in order of current dir, system dir and pathed dir.
 If it is found, it is imported prior to command line options, so that options
 specified in this file will be overridden by command line options.
 
+```
 port=<port>,<format>,<bps>
 
  Specifies port number (1 to 99), data format (n|o|e)(7|8)(1|2) and bit rate.
@@ -47,36 +50,39 @@ help=<flag>
 
   Shows keyborad command list on start up.
   The default setting is: help=1
+```
 
 
 KEYBOARD COMMAND
 ================
-
- [Alt]+[X] - Exit program.
- [Alt]+[V] - Switch view mode, TTY and HEX.
- [Alt]+[L] - Start/Stop logging to a file.
- [Alt]+[G] - Start/Stop with predefined Filename
- [Alt]+[T] - Transmit a file as byte stream.
- [Alt]+[Z] - Timestamp for every Line.
- [Alt]+[Y] - Transmit a file in XMODEM.
- [Alt]+[H] - Hang-up. (Invert DTR for 300ms)
- [Alt]+[B] - Break. (Set TXD '0' for 300ms)
- [Alt]+<nums> - Transmit a byte by number. (e.g. 0 transmits a '\0', 122 transmits a 'z')
- [Alt]+[Up/Down] - Change bit rate.
- [Alt]+[Left/Right] - Change port number.
+```
+[Alt]+[X] - Exit program.
+[Alt]+[V] - Switch view mode, TTY and HEX.
+[Alt]+[L] - Start/Stop logging to a file.
+[Alt]+[G] - Start/Stop with predefined Filename
+[Alt]+[T] - Transmit a file as byte stream.
+[Alt]+[Z] - Timestamp for every Line.
+[Alt]+[Y] - Transmit a file in XMODEM.
+[Alt]+[H] - Hang-up. (Invert DTR for 300ms)
+[Alt]+[B] - Break. (Set TXD '0' for 300ms)
+[Alt]+<nums> - Transmit a byte by number. (e.g. 0 transmits a '\0', 122 transmits a 'z')
+[Alt]+[Up/Down] - Change bit rate.
+[Alt]+[Left/Right] - Change port number.
+```
 
 Install
 =======
 
-Download tt.exe and tt.ini into a Folder and run tt.exe.
+Download `tt.exe` and `tt.ini` into a Folder and run `tt.exe`.
 
 Compile
 =======
 
 For the small Filesize I use tcc (http://bellard.org/tcc/)
-
+```
  tcc -lcomdlg32 -luser32 -o tt.exe tt.c
- 
+``` 
 It also compiles with mingw32
-  
+``` 
  mingw32-gcc -Os -s -mconsole -mwindows -o tt.exe tt.c
+``` 
