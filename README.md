@@ -1,5 +1,5 @@
-TinyTerminal
-============
+Tiny Terminal - TT
+==================
 
 Tiny serial terminal software for Windows, with lots of features. It has low memory and cpu consumtion, is extremly fast and easy to use. Only 14KB executeable and less than 1000 lines of code.
 
