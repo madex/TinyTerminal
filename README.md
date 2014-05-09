@@ -12,9 +12,10 @@ I added some extra features like ALT+G and ALT+Z. And reduced the binary size.
 OPTIONS
 =======
 
-Can be defined in as command line arguments. For example in a shortcut property or in the option file.
+Options can be defined in as command line arguments and in an option file. 
+For example in a shortcut property.
 
-`tt.ini` is an option file for tt.exe. The options must be listed from the first line
+`tt.ini` is the option file for tt.exe. The options must be listed from the first line
 in this file and the options are terminated by end of file or a blanked line.
 This file is searched in order of current dir, system dir and pathed dir.
 If it is found, it is imported prior to command line options, so that options
