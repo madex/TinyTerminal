@@ -1,5 +1,6 @@
 /*----------------------------------------------------------------------------/
-/  TT - Tiny Terminal  R0.2g (C)ChaN, 2005-2013
+/  TT - Tiny Terminal  R0.3a+ (C)ChaN, 2005-2014
+/                      extra features from Martin Ongsiek 2012-2014                                 
 /-----------------------------------------------------------------------------/
 / TT is a simple terminal program for embedded projects. It is a free software
 / opened under license policy of GNU GPL.
@@ -33,7 +34,7 @@
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE. 
 
-  08.05.14 MO 
+  08.05.2014 MO 
     added Alt+G support.	
     added Alt-Z support.
 	merged Version from February 2014 with Alt Up Down Left Right support.
@@ -41,18 +42,19 @@
 
 #include <windows.h>
 #include <commdlg.h>
-//#include <winuser.h>
+//#include <winuser.h> // uncommented because of tcc  MO
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 
 
+#define	INIFILE		"tt.ini"
+#define _MAX_PATH 255 // needed by tcc  MO
+
 #define TMR_HANG	300	/* Hang-up (DTR=OFF) time */
 #define TMR_BREAK	300	/* Break (TXD='0') time */
 
-#define	INIFILE		"tt.ini"
-#define _MAX_PATH 255
-
+/* Keyboard/Internal command */
 #define	KCMD_EXIT	1
 #define	KCMD_SWLOG	2
 #define KCMD_HANG	3
@@ -65,14 +67,13 @@
 #define KCMD_BPSDN	10
 #define KCMD_PORTUP	11
 #define KCMD_PORTDN	12
-#define	KCMD_SWLOG2 13 // MO
-#define	KCMD_TIME   14 // MO
+#define	KCMD_SWLOG2	13 /* MO */
+#define	KCMD_TIME	14 /* MO */
 
 #define OPEN_FIRST	20
 #define RCVR_EXIT	21
 #define RCVR_HALT	22
 #define RCVR_HALTING	23
-
 
 /* XMODEM control chars */
 #define	SOH		0x01
@@ -90,7 +91,7 @@ HANDLE hTransmit = INVALID_HANDLE_VALUE;		/* Handle of transmission file */
 HANDLE hKey, hScreen, hRcvrThread;				/* Handles of console and background thread */
 CONSOLE_SCREEN_BUFFER_INFO ScreenInfo;			/* Original screen attrribute */
 
-BOOL lineBegin = 1;
+BOOL lineBegin = 1;                             /* For detection the start of a new line. MO */
 
 volatile int RcvrCmd;	/* Command to background thread */
 volatile int nTxb;
@@ -121,7 +122,7 @@ int comHelp = 1;
 
 
 const char Usage1[] =
-	"TT - Tiny Terminal R0.3a (C)ChaN, 2014\n\n"
+	"TT - Tiny Terminal R0.3a+ (C)ChaN, 2014\n\n"
 	"Command line parameters:\n"
 	" port=1,n81,9600 : Initial port number, format, bit rate\n"
 	" bps=9600        : Bit rate\n"
@@ -136,11 +137,11 @@ const char Usage2[] =
 	"Keyboard command:\n"
 	" Alt-X : Exit program\n"
 	" Alt-L : Start/Stop logging to a file\n"
-	" Alt-G : Start/Stop with predefined Filename\n"
+	" Alt-G : Start/Stop with predefined Filename\n" /* MO */
 	" Alt-V : Switch view mode, TTY and HEX\n"
 	" Alt-T : Transmit a file as byte stream\n"
 	" Alt-Y : Transmit a file in XMODEM\n"
-	" Alt-Z : Timestamp for every Line\n"
+	" Alt-Z : Timestamp for every Line\n"  /* MO */
 	" Alt-H : Hang-up (Invert DTR for 300ms)\n"
 	" Alt-B : Break (Set TXD '0' for 300ms)\n"
 	" Alt-<nums> : Transmit a byte by number (e.g. 0 sends a '\\0', 122 sends a 'z')\n"
@@ -160,7 +161,7 @@ void set_title (void)
 	frm[1] = comData + '0';
 	frm[2] = (comStop == TWOSTOPBITS) ? '2' : '1';
 	frm[3] = 0;
-	if (hComm != INVALID_HANDLE_VALUE)
+	if (hComm != INVALID_HANDLE_VALUE) /* Print config first MO */
 		sprintf(sTitle, "[COM%u:%s:%ubps] TinyTerminal ", comPort, frm, comBps);
 	else
 		sprintf(sTitle, "[COM%u(not opened)] TinyTerminal ", comPort);
@@ -187,7 +188,7 @@ UINT CALLBACK ofnhook (HWND hdlg, UINT msg, WPARAM wp, LPARAM lp)
 
 
 
-void switch_logging (int type)
+void switch_logging (int type)  /* type for logging without File-Open-Dialog */
 {
 	OPENFILENAME lfn;
 
@@ -216,7 +217,7 @@ void switch_logging (int type)
 			if (hLog != INVALID_HANDLE_VALUE)
 				SetFilePointer(hLog, 0, NULL, FILE_END);
 		}
-	} else {
+	} else { /* create the filename from current date and time   MO  */
         SYSTEMTIME st;
         GetLocalTime(&st);
         snprintf(sLogFileTitle, sizeof sLogFileTitle, "log_%02d-%02d-%02d_%02d.%02d.txt", st.wYear-2000, st.wMonth, st.wDay, st.wHour, st.wMinute);
@@ -668,6 +669,7 @@ DWORD WINAPI RcvrThread (LPVOID parms)
 				DumpAddr++;
 			}
 		} else {	/* TTY mode */
+			/* Put current time-string at the begin of a new line in Rxb if fTime is active */
 			if (fTime) {
 				for (i = 0; i < nrc; i++) {
 					c = Rxb[i];
@@ -681,10 +683,12 @@ DWORD WINAPI RcvrThread (LPVOID parms)
 							char dateStr[50], len;
 							lineBegin = 0;
 							GetLocalTime(&st);
-							snprintf(dateStr, 50, "%02d.%02d %02d:%02d:%02d,%03d> ", st.wDay, st.wMonth, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+							snprintf(dateStr, 50, "%02d.%02d %02d:%02d:%02d,%03d> ", st.wDay, 
+                                     st.wMonth, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
 							len = strlen(dateStr);
-							if ((nrc + len) < 1024) { // fits in Buffer
-								memmove(&Rxb[i+len], &Rxb[i], nrc-i);
+							/* prevent buffer overflow */
+							if ((nrc + len) < 1024) {
+								memmove(&Rxb[i+len], &Rxb[i], nrc - i);
 								memmove(&Rxb[i], dateStr, len);
 								nrc += len;
 							}
@@ -827,10 +831,10 @@ int proc_key (void)
 					case 'L':
 						kcmd = KCMD_SWLOG;
 						break;
-					case 'G' :
+					case 'G' : /* MO */
 						kcmd = KCMD_SWLOG2;
 						break;
-					case 'Z' :
+					case 'Z' : /* MO */
 						kcmd = KCMD_TIME;
 						break;	
 					case 'B':
@@ -940,9 +944,9 @@ int main (int argc, char **argv)
 			return 0;
 
 		case KCMD_SWLOG:
-			switch_logging(0);
+			switch_logging(0); /* MO */
 			break;
-		case KCMD_SWLOG2:
+		case KCMD_SWLOG2: /* MO */
 			switch_logging(1);
 			break;
 
@@ -954,9 +958,8 @@ int main (int argc, char **argv)
 				WriteFile(hLog, "\r\n", 2, &n, NULL);
 			break;
 
-		case KCMD_TIME:
+		case KCMD_TIME: /* MO */
 			fTime = ~fTime;
-			set_title();
 			break;
 			
 		case KCMD_BINARY:
