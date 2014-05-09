@@ -1,15 +1,20 @@
 TinyTerminal
 ============
 
-Tiny (only 15KB) Serial Terminal Software for Windows, with lots of Features. 
-This is a fork from http://elm-chan.org/fsw_e.html
-I added some extra features like ALT+G and ALT-Z. And reduced the binary size.
+Tiny serial terminal software for Windows, with lots of features. It has low memory and cpu consumtion, is extremly fast and easy to use. Only 14KB executeable and less than 1000 lines of code.
 
+The title of the commandline-window shows the the current port configuration and other information.
+
+This is a fork from http://elm-chan.org/fsw_e.html. ElmChan makes really nice soft- and firmware.
+
+I added some extra features like ALT+G and ALT+Z. And reduced the binary size.
 
 OPTIONS
 =======
 
-This is an option file for tt.exe. The options must be listed from the first line
+Can be defined in as command line arguments. For example in a shortcut property or in the option file.
+
+`tt.ini` is an option file for tt.exe. The options must be listed from the first line
 in this file and the options are terminated by end of file or a blanked line.
 This file is searched in order of current dir, system dir and pathed dir.
 If it is found, it is imported prior to command line options, so that options
@@ -56,24 +61,24 @@ help=<flag>
 KEYBOARD COMMAND
 ================
 ```
-[Alt]+[X] - Exit program.
-[Alt]+[V] - Switch view mode, TTY and HEX.
-[Alt]+[L] - Start/Stop logging to a file.
-[Alt]+[G] - Start/Stop with predefined Filename
-[Alt]+[T] - Transmit a file as byte stream.
-[Alt]+[Z] - Timestamp for every Line.
-[Alt]+[Y] - Transmit a file in XMODEM.
-[Alt]+[H] - Hang-up. (Invert DTR for 300ms)
-[Alt]+[B] - Break. (Set TXD '0' for 300ms)
-[Alt]+<nums> - Transmit a byte by number. (e.g. 0 transmits a '\0', 122 transmits a 'z')
-[Alt]+[Up/Down] - Change bit rate.
+[Alt]+[X]          - Exit program.
+[Alt]+[V]          - Switch view mode, TTY and HEX.
+[Alt]+[L]          - Start/Stop logging to a file.
+[Alt]+[G]          - Start/Stop with predefined Filename
+[Alt]+[T]          - Transmit a file as byte stream.
+[Alt]+[Z]          - Timestamp for every Line.
+[Alt]+[Y]          - Transmit a file in XMODEM.
+[Alt]+[H]          - Hang-up. (Invert DTR for 300ms)
+[Alt]+[B]          - Break. (Set TXD '0' for 300ms)
+[Alt]+<nums>       - Transmit a byte by number. (e.g. 0 transmits a '\0', 122 transmits a 'z')
+[Alt]+[Up/Down]    - Change bit rate.
 [Alt]+[Left/Right] - Change port number.
 ```
 
 Install
 =======
 
-Download `tt.exe` and `tt.ini` into a Folder and run `tt.exe`.
+[Download](https://github.com/madex/TinyTerminal/archive/master.zip) and extract `tt.exe` and `tt.ini` into a folder and run `tt.exe`.
 
 Compile
 =======
