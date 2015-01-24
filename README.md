@@ -1,7 +1,8 @@
 Tiny Terminal - TT
 ==================
 
-Tiny serial terminal software for Windows, with lots of features. It has low memory and cpu consumtion, is extremly fast and easy to use. Only 14KB executeable and less than 1000 lines of code.
+This is a tiny console based terminal program for Microsoft Windows. Suitable for debugging console of embedded projects.
+It has low memory and low cpu consumtion, is extremly fast, easy to use and has nice of features. 
 
 The title of the commandline-window shows the the current port configuration and other information.
 
@@ -54,7 +55,7 @@ pol=<flags>
 
 help=<flag>
 
-  Shows keyborad command list on start up.
+  Shows keyboard command list on start up.
   The default setting is: help=1
 ```
 
