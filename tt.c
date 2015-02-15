@@ -145,7 +145,7 @@ const char Usage2[] =
 	" Alt-Z : Timestamp for every Line\n"  /* MBo */
 	" Alt-H : Hang-up (Invert DTR for 300ms)\n"
 	" Alt-B : Break (Set TXD '0' for 300ms)\n"
-	" Alt-P : Change parity (cycle beetween NONE, EVEN, ODD)\n"  /* MBo */
+	" Alt-P : Change parity (cycle beetween NONE, ODD, EVEN)\n"  /* MBo */
 	" Alt-<nums> : Transmit a byte by number (e.g. 0 sends a '\\0', 122 sends a 'z')\n"
 	" Alt-Up/Down : Change bit rate\n"
 	" Alt-Left/Right : Change port number\n"
