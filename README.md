@@ -72,6 +72,7 @@ KEYBOARD COMMAND
 [Alt]+[Y]          - Transmit a file in XMODEM.
 [Alt]+[H]          - Hang-up. (Invert DTR for 300ms)
 [Alt]+[B]          - Break. (Set TXD '0' for 300ms)
+[Alt]+[P]          - Change parity (cycle beetween NONE, ODD, EVEN)
 [Alt]+<nums>       - Transmit a byte by number. (e.g. 0 transmits a '\0', 122 transmits a 'z')
 [Alt]+[Up/Down]    - Change bit rate.
 [Alt]+[Left/Right] - Change port number.
