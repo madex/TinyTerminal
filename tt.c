@@ -1,6 +1,6 @@
 /*----------------------------------------------------------------------------/
 /  TT - Tiny Terminal  R0.3a+ (C)ChaN, 2005-2014
-/                      extra features from Martin Ongsiek 2012-2014                                 
+/                      extra features from Martin Boekhoff 2012-2014
 /-----------------------------------------------------------------------------/
 / TT is a simple terminal program for embedded projects. It is a free software
 / opened under license policy of GNU GPL.
@@ -32,10 +32,10 @@
   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE. 
+  POSSIBILITY OF SUCH DAMAGE.
 
-  08.05.2014 MO 
-    added Alt+G support.	
+  08.05.2014 Martin Boekhoff
+    added Alt+G support.
     added Alt-Z support.
 	merged Version from February 2014 with Alt Up Down Left Right support.
   */
@@ -49,7 +49,7 @@
 
 
 #define	INIFILE		"tt.ini"
-#define _MAX_PATH 255 // needed by tcc  MO
+#define _MAX_PATH 255 // needed by tcc  MBo
 
 #define TMR_HANG	300	/* Hang-up (DTR=OFF) time */
 #define TMR_BREAK	300	/* Break (TXD='0') time */
@@ -67,8 +67,9 @@
 #define KCMD_BPSDN	10
 #define KCMD_PORTUP	11
 #define KCMD_PORTDN	12
-#define	KCMD_SWLOG2	13 /* MO */
-#define	KCMD_TIME	14 /* MO */
+#define	KCMD_SWLOG2	13 /* MBo */
+#define	KCMD_TIME	14 /* MBo */
+#define KCMD_PARITY 15
 
 #define OPEN_FIRST	20
 #define RCVR_EXIT	21
@@ -137,20 +138,18 @@ const char Usage2[] =
 	"Keyboard command:\n"
 	" Alt-X : Exit program\n"
 	" Alt-L : Start/Stop logging to a file\n"
-	" Alt-G : Start/Stop with predefined Filename\n" /* MO */
+	" Alt-G : Start/Stop with predefined Filename\n" /* MBo */
 	" Alt-V : Switch view mode, TTY and HEX\n"
 	" Alt-T : Transmit a file as byte stream\n"
 	" Alt-Y : Transmit a file in XMODEM\n"
-	" Alt-Z : Timestamp for every Line\n"  /* MO */
+	" Alt-Z : Timestamp for every Line\n"  /* MBo */
 	" Alt-H : Hang-up (Invert DTR for 300ms)\n"
 	" Alt-B : Break (Set TXD '0' for 300ms)\n"
+	" Alt-P : Change parity (cycle beetween NONE, EVEN, ODD)\n"  /* MBo */
 	" Alt-<nums> : Transmit a byte by number (e.g. 0 sends a '\\0', 122 sends a 'z')\n"
 	" Alt-Up/Down : Change bit rate\n"
 	" Alt-Left/Right : Change port number\n"
 	;
-
-
-
 
 void set_title (void)
 {
@@ -165,12 +164,12 @@ void set_title (void)
 		sprintf(sTitle, "[COM%u:%s:%ubps] TinyTerminal ", comPort, frm, comBps);
 	else
 		sprintf(sTitle, "[COM%u(not opened)] TinyTerminal ", comPort);
-		
+
 	if (hLog != INVALID_HANDLE_VALUE)
 		sprintf(sTitle + strlen(sTitle), " - %s", sLogFileTitle);
 
 	if (AutoXmit)
-		sprintf(sTitle + strlen(sTitle), " [Send: %u%%]", 100 * FilePtr / FileSize); 
+		sprintf(sTitle + strlen(sTitle), " [Send: %u%%]", 100 * FilePtr / FileSize);
 
 	SetConsoleTitle(sTitle);
 }
@@ -248,7 +247,7 @@ int create_sum(BYTE *buf, int cnt, int mode)
 	int n, i;
 	DWORD sum = 0;
 
-	
+
 	if (mode == 1) {
 		for (i = 0; i < cnt; i++)
 			sum += buf[i];
@@ -424,6 +423,39 @@ void open_port (int cmd)
 
 
 
+void change_parity (void)
+{
+	if (hComm == INVALID_HANDLE_VALUE || AutoXmit) {
+		MessageBeep(MB_OK);
+		return;
+	}
+
+	switch (comParity) {
+		case NOPARITY:
+			comParity = ODDPARITY;
+			break;
+		case ODDPARITY:
+			comParity = EVENPARITY;
+			break;
+		default:
+			comParity = NOPARITY;
+			break;
+	}
+	comDcb.Parity = comParity;
+	RcvrCmd = RCVR_HALT;	/* Get background thread away from comm function */
+	while (RcvrCmd != RCVR_HALTING) Sleep(1);
+
+	if (SetCommState(hComm, &comDcb)) {
+		set_title();
+	} else {
+		MessageBeep(MB_OK);
+	}
+	RcvrCmd = 0;
+}
+
+
+
+
 void change_bps (int cmd)
 {
 	const int bpstbl[] = {300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600};
@@ -477,7 +509,6 @@ int get_column (char **src, char *dst, int sz)
 {
 	BYTE c;
 	int ret = 0;
-
 
 	while (1) {
 		c = **src;
@@ -683,7 +714,7 @@ DWORD WINAPI RcvrThread (LPVOID parms)
 							char dateStr[50], len;
 							lineBegin = 0;
 							GetLocalTime(&st);
-							snprintf(dateStr, 50, "%02d.%02d %02d:%02d:%02d,%03d> ", st.wDay, 
+							snprintf(dateStr, 50, "%02d.%02d %02d:%02d:%02d,%03d> ", st.wDay,
                                      st.wMonth, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
 							len = strlen(dateStr);
 							/* prevent buffer overflow */
@@ -696,7 +727,7 @@ DWORD WINAPI RcvrThread (LPVOID parms)
 					}
 				}
 			}
-			
+
 			if (hLog != INVALID_HANDLE_VALUE)
 				WriteFile(hLog, Rxb, nrc, &d, NULL);
 			i = b = 0;
@@ -831,12 +862,15 @@ int proc_key (void)
 					case 'L':
 						kcmd = KCMD_SWLOG;
 						break;
-					case 'G' : /* MO */
+					case 'G': /* MBo */
 						kcmd = KCMD_SWLOG2;
 						break;
-					case 'Z' : /* MO */
+					case 'Z': /* MBo */
 						kcmd = KCMD_TIME;
-						break;	
+						break;
+					case 'P': /* MBo */
+						kcmd = KCMD_PARITY;
+						break;
 					case 'B':
 						kcmd = KCMD_BREAK;
 						break;
@@ -961,7 +995,7 @@ int main (int argc, char **argv)
 		case KCMD_TIME: /* MO */
 			fTime = ~fTime;
 			break;
-			
+
 		case KCMD_BINARY:
 		case KCMD_XMODEM:
 			start_transmisson(cmd);
@@ -979,6 +1013,10 @@ int main (int argc, char **argv)
 		case KCMD_BPSUP:
 		case KCMD_BPSDN:
 			change_bps(cmd);
+			break;
+
+		case KCMD_PARITY:
+			change_parity();
 			break;
 
 		case KCMD_PORTUP:
