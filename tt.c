@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------------/
-/  TT - Tiny Terminal  R0.3a+ (C)ChaN, 2005-2014
+/  TT - Tiny Terminal  R0.3a.3 (C)ChaN, 2005-2014
 /                      extra features from Martin Boekhoff 2012-2014
 /-----------------------------------------------------------------------------/
 / TT is a simple terminal program for embedded projects. It is a free software
@@ -40,12 +40,15 @@
 	merged Version from February 2014 with Alt Up Down Left Right support.
   */
 
+#define VERSION_STR "R0.3a.3"
+
 #include <windows.h>
 #include <commdlg.h>
 //#include <winuser.h> // uncommented because of tcc  MO
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include "tt.h"
 
 
 #define	INIFILE		"tt.ini"
@@ -83,6 +86,9 @@
 #define	NAK		0x15
 #define	CAN		0x18
 
+/* View Modes - (future releases will scan for plugin dlls that add special views) */
+#define VIEW_TTY 0
+#define VIEW_HEX 1
 
 /* Handles */
 volatile HANDLE hComm = INVALID_HANDLE_VALUE;	/* Handle of open comm port */
@@ -99,8 +105,9 @@ volatile int nTxb;
 volatile char Rxc, Xmode, Xseq;
 char Txb[256];
 BYTE Rxb[1024];
-volatile BOOL fDump;		/* HEX dump mode */
-volatile BOOL fTime;		/* Print Time for every Line MO */
+
+volatile BYTE view;
+volatile BOOL fTime;		/* Print Time for every Line MBo */
 volatile DWORD DumpAddr;	/* Dump address */
 
 /* Auto transmission controls */
@@ -120,10 +127,12 @@ int comParity = NOPARITY;
 BOOL comCtsflow = FALSE;
 int comPol = 0;		/* Signal polarity - b0:Invert DTR, b1:Invert DSR, b2:Invert TXD (no transmission) */
 int comHelp = 1;
-
+char viewNameHex[] = "HEX";
+char viewNameTty[] = "TTY";
+char *comViewName = viewNameTty;
 
 const char Usage1[] =
-	"TT - Tiny Terminal R0.3a+ (C)ChaN, 2014\n\n"
+	"TT - Tiny Terminal "VERSION_STR" (C)ChaN, 2014\n\n"
 	"Command line parameters:\n"
 	" port=1,n81,9600 : Initial port number, format, bit rate\n"
 	" bps=9600        : Bit rate\n"
@@ -160,10 +169,10 @@ void set_title (void)
 	frm[1] = comData + '0';
 	frm[2] = (comStop == TWOSTOPBITS) ? '2' : '1';
 	frm[3] = 0;
-	if (hComm != INVALID_HANDLE_VALUE) /* Print config first MO */
-		sprintf(sTitle, "[COM%u:%s:%ubps] TinyTerminal ", comPort, frm, comBps);
+	if (hComm != INVALID_HANDLE_VALUE) /* Print config first MBo */
+		sprintf(sTitle, "[COM%u:%s:%ubps] %s - TinyTerminal "VERSION_STR, comPort, frm, comBps, comViewName);
 	else
-		sprintf(sTitle, "[COM%u(not opened)] TinyTerminal ", comPort);
+		sprintf(sTitle, "[COM%u(not opened)] TinyTerminal "VERSION_STR, comPort);
 
 	if (hLog != INVALID_HANDLE_VALUE)
 		sprintf(sTitle + strlen(sTitle), " - %s", sLogFileTitle);
@@ -421,6 +430,22 @@ void open_port (int cmd)
 }
 
 
+void next_view(void) {
+    switch (view) {
+        case VIEW_TTY:
+            view        = VIEW_HEX;
+            comViewName = viewNameHex;
+            break;
+
+        case VIEW_HEX:
+            view        = VIEW_TTY;
+            comViewName = viewNameTty;
+            break;
+    }
+
+    set_title();
+}
+
 
 
 void change_parity (void)
@@ -672,7 +697,7 @@ DWORD WINAPI RcvrThread (LPVOID parms)
 		Rxc = Rxb[0];
 		if (AutoXmit == KCMD_XMODEM) continue;
 
-		if (fDump) {	/* HEX dump mode */
+		if (view == 1) {	/* HEX dump mode */
 			for (i = 0; i < nrc; i++) {
 				c = Rxb[i];
 				dbuff[DumpAddr & 15] = (c >= 0x20 && c <= 0x7E) ? c : '.';
@@ -985,11 +1010,11 @@ int main (int argc, char **argv)
 			break;
 
 		case KCMD_VIEW:
-			fDump = ~fDump;
-			DumpAddr = 0;
-			WriteConsole(hScreen, "\r\n", 2, &n, NULL);
-			if (hLog != INVALID_HANDLE_VALUE)
-				WriteFile(hLog, "\r\n", 2, &n, NULL);
+		    next_view();
+            DumpAddr = 0;
+            WriteConsole(hScreen, "\r\n", 2, &n, NULL);
+            if (hLog != INVALID_HANDLE_VALUE)
+                WriteFile(hLog, "\r\n", 2, &n, NULL);
 			break;
 
 		case KCMD_TIME: /* MO */

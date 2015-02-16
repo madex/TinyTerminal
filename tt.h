@@ -6,8 +6,8 @@
 #ifndef TT_H
 #define TT_H
 
-typedef void (*extKeyHandler_t(int key))
-typedef void (*extRecv_t(char byte))
+typedef void (*extKeyHandler_t)(int key);
+typedef void (*extRecv_t)(char recvByte);
 
 typedef struct {
 	char name[20];
@@ -17,8 +17,8 @@ typedef struct {
 	int  comStop;
 	int  comParity;
 	BOOL comCtsflow;
-	int  comPol
-	extensionEventHandler_t eventHandler;
+	int  comPol;
+	extKeyHandler_t eventHandler;
 	extRecv_t reveiveFunc;
 } extension_data_t;
 
