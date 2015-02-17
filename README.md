@@ -6,6 +6,8 @@ It has low memory and low cpu consumtion, is extremly fast, easy to use and has 
 
 The title of the commandline-window shows the the current port configuration and other information.
 
+![TinyTerminal](https://madex.github.io/tt.png)
+
 This is a fork from http://elm-chan.org/fsw_e.html. ElmChan makes really nice soft- and firmware.
 
 I added some extra features like ALT+G and ALT+Z. And reduced the binary size.
