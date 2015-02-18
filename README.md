@@ -88,11 +88,11 @@ Install
 Compile
 =======
 
-For the small Filesize I use tcc (http://bellard.org/tcc/)
+For the small Filesize I use my fork of TinyCC http://github.com/madex/tcc, it is a fork from http://bellard.org/tcc/ with advanced win32api Headers. You need it because the original version has no comdlg32 support.
 ```
  tcc -lcomdlg32 -luser32 -o tt.exe tt.c
 ``` 
-It also compiles with mingw32
+It also compiles with mingw32, this is usefull for debugging. There is also a Code::Blocks project file.
 ``` 
  mingw32-gcc -Os -s -mconsole -mwindows -o tt.exe tt.c
 ``` 
