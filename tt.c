@@ -52,8 +52,9 @@
 
 
 #define	INIFILE		"tt.ini"
+#ifndef _MAX_PATH 
 #define _MAX_PATH 255 // needed by tcc  MBo
-
+#endif
 #define TMR_HANG	300	/* Hang-up (DTR=OFF) time */
 #define TMR_BREAK	300	/* Break (TXD='0') time */
 
