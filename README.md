@@ -6,6 +6,8 @@ It has low memory and low cpu consumtion, is extremly fast, easy to use and has 
 
 The title of the commandline-window shows the the current port configuration and other information.
 
+![TinyTerminal](https://madex.github.io/tt.png)
+
 This is a fork from http://elm-chan.org/fsw_e.html. ElmChan makes really nice soft- and firmware.
 
 I added some extra features like ALT+G and ALT+Z. And reduced the binary size.
@@ -86,11 +88,11 @@ Install
 Compile
 =======
 
-For the small Filesize I use tcc (http://bellard.org/tcc/)
+For the small Filesize I use my fork of TinyCC http://github.com/madex/tcc, it is a fork from http://bellard.org/tcc/ with advanced win32api Headers. You need it because the original version has no comdlg32 support.
 ```
  tcc -lcomdlg32 -luser32 -o tt.exe tt.c
 ``` 
-It also compiles with mingw32
+It also compiles with mingw32, this is usefull for debugging. There is also a Code::Blocks project file.
 ``` 
  mingw32-gcc -Os -s -mconsole -mwindows -o tt.exe tt.c
 ``` 
